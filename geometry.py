@@ -1,8 +1,7 @@
-from re import I
 from typing import List
 import math
 
-EPSILON = 1e-10
+EPSILON = 0.1
 
 class Point:
 
@@ -68,10 +67,9 @@ class Circle:
             return []
 
         raw_root = math.sqrt(under_root)
-        possible_roots = [raw_root] if raw_root == 0 else [-raw_root, raw_root]
 
         solutions = []
-        for root in possible_roots:
+        for root in [-raw_root, raw_root]:
             x = (root - k * l + k * q + p) / (ksq + 1)
             solutions.append(Point(x, slope.solve_for(x)))
 

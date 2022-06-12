@@ -1,8 +1,7 @@
 from typing import Dict, List
 import pygame
+from c_types import CPoint, CSlope
 from geometry import Point, Slope
-
-class_id = 0
 
 ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(1280)]
 SUPPORT_LIST = [0] * 1280
@@ -15,9 +14,7 @@ class SlopableRect(pygame.rect.Rect):
         self.points: Dict[str, (Point, Point)] = {}
         self.on_colide = on_colide
 
-        global class_id, ALL_RECTANGLES
-        self.hash = class_id
-        class_id += 1
+        global ALL_RECTANGLES
         ALL_RECTANGLES[self.left].append(self)
 
         self._calc_slopes()
@@ -34,17 +31,23 @@ class SlopableRect(pygame.rect.Rect):
             SUPPORT_LIST[i] = last_index
 
     def _calc_slopes(self):
-        ps1 = Point(self.x, self.y)
-        ps2 = Point(self.x + self.width, self.y)
-        ps3 = Point(self.x + self.width, self.y + self.height)
-        ps4 = Point(self.x, self.y + self.height)
+        p1 = Point(self.x, self.y)
+        p2 = Point(self.x + self.width, self.y)
+        p3 = Point(self.x + self.width, self.y + self.height)
+        p4 = Point(self.x, self.y + self.height)
 
         self.points = {
-            "top": (ps1, ps2),
-            "right": (ps2, ps3),
-            "bottom": (ps3, ps4),
-            "left": (ps4, ps1)
+            "top": (p1, p2),
+            "right": (p2, p3),
+            "bottom": (p3, p4),
+            "left": (p4, p1)
         }
+
+        # for C
+        # top, bottom, left, right
+        self.point_list = [(p1, p2), (p3, p4), (p4, p1), (p2, p3)]
+        self.cpoints = [[CPoint.from_python(p1), CPoint.from_python(p2)], [CPoint.from_python(p3), CPoint.from_python(p4)], [CPoint.from_python(p4), CPoint.from_python(p1)], [CPoint.from_python(p2), CPoint.from_python(p3)]]
+        self.cslopes = [CSlope.from_python(Slope.from_points(*points)) for points in self.point_list]
 
         self.slopes = dict([(side, Slope.from_points(*points)) for side, points in self.points.items()])
 
@@ -52,4 +55,4 @@ class SlopableRect(pygame.rect.Rect):
         ALL_RECTANGLES[self.left].remove(self)
 
     def __hash__(self):
-        return self.hash
+        return id(self)
