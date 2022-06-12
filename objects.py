@@ -1,8 +1,8 @@
 import math
-from typing import Callable, List, Tuple, Union
+from typing import Callable, List, Set, Tuple, Union
 import pygame
 from geometry import Circle, Point
-from slopeable_rect import SlopableRect
+from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
 
 def num_between(num, bound1, bound2):
     return (bound1 - num) * (bound2 - num) <= 0
@@ -10,6 +10,20 @@ def num_between(num, bound1, bound2):
 class_id = 0
 
 BALL_SPEED = 6
+
+def binear_search_by_y(lookup: List[SlopableRect], lower_bound: int) -> int:
+        left = 0
+        right = len(lookup)
+        mid = 0
+
+        while left < right:
+            mid = left + (right - left) // 2
+            if lookup[mid].y >= lower_bound:
+                right = mid - 1
+            else:
+                left = mid + 1
+        
+        return mid
 
 class Ball(pygame.Rect):
 
@@ -66,44 +80,65 @@ class Ball(pygame.Rect):
 
         return None
 
-    def tick(self, obstacles: List[SlopableRect]):
+    def __updated_if_colided(self, obstacle: SlopableRect) -> bool:
+        collision = self.detect_collision(obstacle)
+        if not collision:
+            return False
+
+        side, point = collision
+
+        if self.on_colide:
+            self.on_colide(self)
+
+        if obstacle.on_colide:
+            obstacle.on_colide(obstacle)
+
+        if side in ["top", "bottom"]:
+            relativeIntersect = (obstacle.x + (obstacle.width / 2)) - point.x
+            normalizedIntersect = relativeIntersect / (obstacle.width / 2)
+            angle = normalizedIntersect * math.radians(75)
+
+            if side == "top":
+                self.velocity_x = BALL_SPEED * math.sin(angle)
+                self.velocity_y = -BALL_SPEED * math.cos(angle)
+            else:
+                self.velocity_x = BALL_SPEED * math.sin(angle)
+                self.velocity_y = BALL_SPEED * math.cos(angle)
+        else:
+            relativeIntersect = (obstacle.y + (obstacle.height / 2)) - point.y
+            normalizedIntersect = relativeIntersect / (obstacle.height / 2)
+            angle = normalizedIntersect * math.radians(75)
+
+            if side == "left":
+                self.velocity_x = -BALL_SPEED * math.cos(angle)
+                self.velocity_y = BALL_SPEED * math.sin(angle)
+            else:
+                self.velocity_x = BALL_SPEED * math.cos(angle)
+                self.velocity_y = BALL_SPEED * math.sin(angle)
+
+        return True
+
+    def tick(self, obstacles: Set[SlopableRect], extra: Set[SlopableRect] = set()):
         self.x += self.velocity_x
         self.y += self.velocity_y
 
-        for obstacle in obstacles:
-            collision = self.detect_collision(obstacle)
-            if collision:
-                side, point = collision
+        i = max(0, self.x - 10)
+        while i < min(1280, self.x + 10):
+            i = min(self.x + 10, SUPPORT_LIST[i])
+            j = binear_search_by_y(ALL_RECTANGLES[i], self.y - 10)
+            while j < len(ALL_RECTANGLES[i]):
+                obstacle = ALL_RECTANGLES[i][j]
+                if obstacle.y > self.y + 10:
+                    break
+                
+                if obstacle in obstacles and self.__updated_if_colided(obstacle):
+                    break
 
-                if self.on_colide:
-                    self.on_colide(self)
+                j += 1
+            i += 1
 
-                if obstacle.on_colide:
-                    obstacle.on_colide(obstacle)
-
-                if side in ["top", "bottom"]:
-                    relativeIntersect = (obstacle.x + (obstacle.width / 2)) - point.x
-                    normalizedIntersect = relativeIntersect / (obstacle.width / 2)
-                    angle = normalizedIntersect * math.radians(75)
-
-                    if side == "top":
-                        self.velocity_x = BALL_SPEED * math.sin(angle)
-                        self.velocity_y = -BALL_SPEED * math.cos(angle)
-                    else:
-                        self.velocity_x = BALL_SPEED * math.sin(angle)
-                        self.velocity_y = BALL_SPEED * math.cos(angle)
-                else:
-                    relativeIntersect = (obstacle.y + (obstacle.height / 2)) - point.y
-                    normalizedIntersect = relativeIntersect / (obstacle.height / 2)
-                    angle = normalizedIntersect * math.radians(75)
-
-                    if side == "left":
-                        self.velocity_x = -BALL_SPEED * math.cos(angle)
-                        self.velocity_y = BALL_SPEED * math.sin(angle)
-                    else:
-                        self.velocity_x = BALL_SPEED * math.cos(angle)
-                        self.velocity_y = BALL_SPEED * math.sin(angle)
-                break
+        for obstacle in extra:
+            self.__updated_if_colided(obstacle)
 
     def __hash__(self):
         return self.hash
