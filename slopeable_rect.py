@@ -1,6 +1,5 @@
 from typing import Dict, List
 import pygame
-from c_types import CPoint, CSlope
 from geometry import Point, Slope
 
 ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(1280)]
@@ -15,7 +14,7 @@ class SlopableRect(pygame.rect.Rect):
         self.on_colide = on_colide
 
         global ALL_RECTANGLES
-        ALL_RECTANGLES[self.left].append(self)
+        ALL_RECTANGLES[self.x].append(self)
 
         self._calc_slopes()
 
@@ -45,9 +44,9 @@ class SlopableRect(pygame.rect.Rect):
 
         # for C
         # top, bottom, left, right
-        self.point_list = [(p1, p2), (p3, p4), (p4, p1), (p2, p3)]
-        self.cpoints = [[CPoint.from_python(p1), CPoint.from_python(p2)], [CPoint.from_python(p3), CPoint.from_python(p4)], [CPoint.from_python(p4), CPoint.from_python(p1)], [CPoint.from_python(p2), CPoint.from_python(p3)]]
-        self.cslopes = [CSlope.from_python(Slope.from_points(*points)) for points in self.point_list]
+        # self.point_list = [(p1, p2), (p3, p4), (p4, p1), (p2, p3)]
+        # self.cpoints = [[CPoint.from_python(p1), CPoint.from_python(p2)], [CPoint.from_python(p3), CPoint.from_python(p4)], [CPoint.from_python(p4), CPoint.from_python(p1)], [CPoint.from_python(p2), CPoint.from_python(p3)]]
+        # self.cslopes = [CSlope.from_python(Slope.from_points(*points)) for points in self.point_list]
 
         self.slopes = dict([(side, Slope.from_points(*points)) for side, points in self.points.items()])
 

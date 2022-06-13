@@ -1,7 +1,6 @@
 import math
 from typing import Callable, List, Set, Tuple, Union
 import pygame
-from c_collision import c_detect_collision
 from geometry import Circle, Point
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
 
@@ -71,7 +70,7 @@ class Ball(pygame.Rect):
 
         return None
 
-    def __updated_if_colided(self, obstacle: SlopableRect) -> bool:
+    def __update_if_colided(self, obstacle: SlopableRect) -> bool:
         collision = self.native_collision(obstacle)
         # collision = c_detect_collision(self.centerx, self.centery, self.radius, obstacle)
 
@@ -91,23 +90,21 @@ class Ball(pygame.Rect):
             normalizedIntersect = relativeIntersect / (obstacle.width / 2)
             angle = normalizedIntersect * math.radians(75)
 
+            self.velocity_x = BALL_SPEED * math.sin(angle)
             if side == "top":
-                self.velocity_x = BALL_SPEED * math.sin(angle)
                 self.velocity_y = -BALL_SPEED * math.cos(angle)
             else:
-                self.velocity_x = BALL_SPEED * math.sin(angle)
                 self.velocity_y = BALL_SPEED * math.cos(angle)
         else:
             relativeIntersect = (obstacle.y + (obstacle.height / 2)) - point.y
             normalizedIntersect = relativeIntersect / (obstacle.height / 2)
             angle = normalizedIntersect * math.radians(75)
 
+            self.velocity_y = BALL_SPEED * math.sin(angle)
             if side == "left":
                 self.velocity_x = -BALL_SPEED * math.cos(angle)
-                self.velocity_y = BALL_SPEED * math.sin(angle)
             else:
                 self.velocity_x = BALL_SPEED * math.cos(angle)
-                self.velocity_y = BALL_SPEED * math.sin(angle)
 
         return True
 
@@ -116,22 +113,22 @@ class Ball(pygame.Rect):
         self.y += self.velocity_y
 
         i = max(0, self.x - 10)
-        while i < min(1280, self.x + 10):
-            i = min(self.x + 10, SUPPORT_LIST[i])
+        while i < min(1280, self.x + self.width + 10):
+            i = min(self.x + self.width + 10, SUPPORT_LIST[i])
             j = binear_search_by_y(ALL_RECTANGLES[i], self.y - 10)
             while j < len(ALL_RECTANGLES[i]):
                 obstacle = ALL_RECTANGLES[i][j]
-                if obstacle.y > self.y + 10:
+                if obstacle.y > self.y + self.height + 10:
                     break
                 
-                if obstacle in obstacles and self.__updated_if_colided(obstacle):
+                if obstacle in obstacles and self.__update_if_colided(obstacle):
                     break
 
                 j += 1
             i += 1
 
         for obstacle in extra:
-            self.__updated_if_colided(obstacle)
+            self.__update_if_colided(obstacle)
 
     def __hash__(self):
         return id(self)        

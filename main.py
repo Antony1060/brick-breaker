@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Set
+from typing import Literal, Set
 import pygame
 import time
 
@@ -10,9 +10,10 @@ from slopeable_rect import SlopableRect
 pygame.init()
 
 WIDTH = 1280
-HEIGHT = 1000
+HEIGHT = 720
 TARGET_FPS = 60
 COLOR_BG = (10, 13, 19)
+COLOR_TEXT_BG = (0, 0, 0)
 COLOR_WHITE = (218, 218, 218)
 LINE_WIDTH = 200
 LINE_HEIGHT = 10
@@ -22,7 +23,7 @@ CUBE_WIDTH = 10
 CUBE_HEIGHT = 10
 CUBE_PADDING = 10
 CUBE_COUNT_PER_ROW = (WIDTH - CUBE_PADDING) // (CUBE_WIDTH + CUBE_PADDING)
-CUBE_COUNT = CUBE_COUNT_PER_ROW * 40
+CUBE_COUNT = CUBE_COUNT_PER_ROW * 20
 
 BALL_HEIGHT = 12
 
@@ -38,11 +39,8 @@ POWERUP_TRIPLE_DOWN_IMG = pygame.transform.scale(pygame.image.load(os.path.join(
 
 LINE = SlopableRect(WIDTH / 2 - LINE_WIDTH / 2, HEIGHT - 20 - LINE_HEIGHT, LINE_WIDTH, LINE_HEIGHT)
 
-TPT_TEXT_RECT = pygame.rect.Rect(20, HEIGHT - 20 - 100, 400, 20)
-AVG_TPT_TEXT_RECT = pygame.rect.Rect(20, HEIGHT - 20 - 80, 400, 20)
-MAX_TPT_TEXT_RECT = pygame.rect.Rect(20, HEIGHT - 20 - 60, 400, 20)
-FPT_TEXT_RECT = pygame.rect.Rect(20, HEIGHT - 20 - 40, 400, 20)
-COMPUTATION_FPS_TEXT_RECT = pygame.rect.Rect(20, HEIGHT - 20 - 20, 400, 20)
+TITLE_FONT = pygame.font.Font(pygame.font.get_default_font(), 32)
+SUBTITLE_FONT = pygame.font.Font(pygame.font.get_default_font(), 24)
 MONOSPACE_FONT = pygame.font.SysFont("monospace", 20)
 
 def on_ball_draw(win, x, y, r):
@@ -80,6 +78,12 @@ CUBES = {SlopableRect(CUBE_PADDING + (i % CUBE_COUNT_PER_ROW) * (CUBE_PADDING + 
 
 SlopableRect.optimize()
 
+def pad_rect(rect: pygame.Rect, padding: int):
+    rect.x -= padding
+    rect.y -= padding
+    rect.width += padding * 2
+    rect.height += padding * 2
+
 def handle_ball_movement(ball: Ball, obstables: Set[SlopableRect], src_set: Set[Ball]):
     if (ball.x + BALL_HEIGHT) >= WIDTH or ball.x <= 0:
         ball.velocity_x *= -1
@@ -92,7 +96,7 @@ def handle_ball_movement(ball: Ball, obstables: Set[SlopableRect], src_set: Set[
 
     ball.tick(obstables, {LINE})
 
-def draw_state(tpt, avg_tpt, max_tpt, fps, computation_fps):
+def draw_state(game_state, stats):
     WIN.fill(COLOR_BG)
     pygame.draw.rect(WIN, COLOR_WHITE, LINE)
 
@@ -105,17 +109,35 @@ def draw_state(tpt, avg_tpt, max_tpt, fps, computation_fps):
     for powerup in POWERUPS:
         powerup.draw(WIN)
 
-    # drawing time per tick
+    if game_state in ["won", "lost"]:
+        title_state_text = TITLE_FONT.render(f"You {game_state}!", True, COLOR_WHITE)
+        subtitle_state_text = SUBTITLE_FONT.render((f"{len(CUBES)} cubes left. " if game_state == "lost" else "") + "Press any key to exit.", True, COLOR_WHITE)
+
+        title_rect = title_state_text.get_rect(center=(WIDTH / 2, HEIGHT / 2 - 20))
+        subtitle_rect = subtitle_state_text.get_rect(center=(WIDTH / 2, HEIGHT / 2 + 20))
+
+        title_rect_copy, subtitle_rect_copy = title_rect.copy(), subtitle_rect.copy()
+
+        pad_rect(title_rect_copy, 10)
+        pad_rect(subtitle_rect_copy, 10)
+
+        pygame.draw.rect(WIN, COLOR_TEXT_BG, title_rect_copy, border_radius=4)
+        pygame.draw.rect(WIN, COLOR_TEXT_BG, subtitle_rect_copy, border_radius=4)
+        WIN.blit(title_state_text, title_rect)
+        WIN.blit(subtitle_state_text, subtitle_rect)
+
+    ## rendering stats
+    tpt, avg_tpt, max_tpt, fps, computation_fps = stats
     tpt_text = MONOSPACE_FONT.render(f"TPT: {tpt:.6f}ms", False, COLOR_WHITE)
     avg_tpt_text = MONOSPACE_FONT.render(f"Avg TPT: {avg_tpt:.6f}ms", False, COLOR_WHITE)
     max_tpt_text = MONOSPACE_FONT.render(f"Max TPT: {max_tpt:.6f}ms", False, COLOR_WHITE)
     fps_text = MONOSPACE_FONT.render(f"FPS: {fps:.0f}fps", False, COLOR_WHITE)
     computation_fps_text = MONOSPACE_FONT.render(f"Computation FPS: {computation_fps:.0f}fps", False, COLOR_WHITE)
-    WIN.blit(tpt_text, TPT_TEXT_RECT)
-    WIN.blit(avg_tpt_text, AVG_TPT_TEXT_RECT)
-    WIN.blit(max_tpt_text, MAX_TPT_TEXT_RECT)
-    WIN.blit(fps_text, FPT_TEXT_RECT)
-    WIN.blit(computation_fps_text, COMPUTATION_FPS_TEXT_RECT)
+    WIN.blit(tpt_text, [20, HEIGHT - 20 - 100, 400, 20])
+    WIN.blit(avg_tpt_text, [20, HEIGHT - 20 - 80, 400, 20])
+    WIN.blit(max_tpt_text, [20, HEIGHT - 20 - 60, 400, 20])
+    WIN.blit(fps_text, [20, HEIGHT - 20 - 40, 400, 20])
+    WIN.blit(computation_fps_text, [20, HEIGHT - 20 - 20, 400, 20])
 
     pygame.display.update()
 
@@ -125,7 +147,7 @@ def handle_event(event: pygame.event.Event) -> bool:
 
     return True
 
-def handle_keypresses(keypresses):
+def adjust_line_position(keypresses):
     if keypresses[pygame.K_d]:
         LINE.x = max(0, min(WIDTH - LINE_WIDTH, LINE.x + LINE_VELOCITY))
     elif keypresses[pygame.K_a]:
@@ -138,6 +160,8 @@ def main():
     total_tpt = 0
     tpt_cnt = 0
     prev_computation_fps = 0
+
+    game_state: Literal["playing"] | Literal["won"] | Literal["lost"] = "playing"
     try:
         while running:
             clock.tick(TARGET_FPS)
@@ -145,11 +169,26 @@ def main():
             for event in pygame.event.get():
                 running = handle_event(event)
             
-            handle_keypresses(pygame.key.get_pressed())
-            LINE._calc_slopes()
+            keypresses = pygame.key.get_pressed()
 
-            if len(BALLS) <= 0 or len(CUBES) <= 10:
-                running = False
+            if game_state != "playing":
+                if any(keypresses):
+                    running = False
+                    break
+
+                draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
+                continue
+
+            if len(CUBES) <= 0:
+                game_state = "won"
+                continue
+
+            if len(BALLS) <= 0:
+                game_state = "lost"
+                continue
+
+            adjust_line_position(keypresses)
+            LINE._calc_slopes()
 
             for ball in BALLS.copy():
                 handle_ball_movement(ball, CUBES, BALLS)
@@ -165,7 +204,7 @@ def main():
 
             prev_computation_fps = (prev_computation_fps * 60 + (1 / (tpt / 1000))) / 61
 
-            draw_state(tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps)
+            draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
     except KeyboardInterrupt:
         pass
 
