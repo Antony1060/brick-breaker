@@ -1,7 +1,7 @@
 from typing import List
 import math
 
-EPSILON = 0.1
+EPSILON = 1e-6
 
 class Point:
 
