@@ -14,7 +14,7 @@ HEIGHT = 1000
 TARGET_FPS = 60
 COLOR_BG = (10, 13, 19)
 COLOR_WHITE = (218, 218, 218)
-LINE_WIDTH = WIDTH
+LINE_WIDTH = 200
 LINE_HEIGHT = 10
 LINE_VELOCITY = 16
 
@@ -26,7 +26,7 @@ CUBE_COUNT = CUBE_COUNT_PER_ROW * 40
 
 BALL_HEIGHT = 12
 
-POWERUP_CHANCE = 60
+POWERUP_CHANCE = 20
 POWERUP_HEIGHT = 20
 POWERUP_VELOCITY = 4
 
@@ -138,7 +138,6 @@ def main():
     total_tpt = 0
     tpt_cnt = 0
     prev_computation_fps = 0
-    worst_fps = TARGET_FPS * 2
     try:
         while running:
             clock.tick(TARGET_FPS)
@@ -163,8 +162,6 @@ def main():
             total_tpt += tpt
             tpt_cnt += 1
             max_tpt = max(tpt, max_tpt)
-            if clock.get_fps() > 0:
-                worst_fps = min(worst_fps, clock.get_fps())
 
             prev_computation_fps = (prev_computation_fps * 60 + (1 / (tpt / 1000))) / 61
 
@@ -172,12 +169,10 @@ def main():
     except KeyboardInterrupt:
         pass
 
-    print(max_tpt)
-    print(worst_fps)
-    # print("\n---------------- Stats ----------------")
-    # print(f"{max_tpt=}ms")
-    # print(f"avg_tpt={total_tpt / tpt_cnt}ms")
-    # print("---------------------------------------")
+    print("\n---------------- Stats ----------------")
+    print(f"{max_tpt=}ms")
+    print(f"avg_tpt={total_tpt / tpt_cnt}ms")
+    print("---------------------------------------")
 
 if __name__ == "__main__":
     main()

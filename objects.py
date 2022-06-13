@@ -72,7 +72,8 @@ class Ball(pygame.Rect):
         return None
 
     def __updated_if_colided(self, obstacle: SlopableRect) -> bool:
-        collision = c_detect_collision(self.centerx, self.centery, self.radius, obstacle)
+        collision = self.native_collision(obstacle)
+        # collision = c_detect_collision(self.centerx, self.centery, self.radius, obstacle)
 
         if not collision:
             return False
