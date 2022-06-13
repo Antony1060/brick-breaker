@@ -1,6 +1,6 @@
 import os
 import random
-from typing import Literal, Set
+from typing import Literal, Set, Union
 import pygame
 import time
 
@@ -161,7 +161,7 @@ def main():
     tpt_cnt = 0
     prev_computation_fps = 0
 
-    game_state: Literal["playing"] | Literal["won"] | Literal["lost"] = "playing"
+    game_state: Union[Literal["playing"], Literal["won"], Literal["lost"]] = "playing"
     try:
         while running:
             clock.tick(TARGET_FPS)

@@ -42,7 +42,7 @@ class Ball(pygame.Rect):
 
         return self.radius + rect.width / 2 < diff_x and self.radius + rect.height / 2 < diff_y
 
-    def native_collision(self, rect: SlopableRect) -> None | Tuple[str, Point]:
+    def native_collision(self, rect: SlopableRect) -> Union[None, Tuple[str, Point]]:
         if self.__outside_collidable(rect):
             return None
         
