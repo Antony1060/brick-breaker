@@ -4,7 +4,7 @@ from typing import Tuple
 
 from geometry import Circle, Point
 from slopeable_rect import SlopableRect
-from c_types import CPoint, CSlope, CRect, CollisonResult
+from old_c_types import CPoint, CSlope, CRect, CollisonResult
 
 clib = ctypes.CDLL(os.path.abspath("./circle_rect_collision.so"))
 

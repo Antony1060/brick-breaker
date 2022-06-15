@@ -35,7 +35,7 @@ def main():
     worst_fps_avg = AverageCounter()
 
     print("Compiling C libraries...")
-    os.system("./compile_c.sh")
+    os.system("./compile.sh")
     print("Compilation done, starting benchmark...")
     time.sleep(0)
 

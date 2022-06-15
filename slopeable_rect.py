@@ -1,5 +1,5 @@
-from typing import Dict, List
 import pygame
+from typing import Dict, List
 from geometry import Point, Slope
 
 ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(1280)]
