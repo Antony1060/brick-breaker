@@ -1,5 +1,5 @@
 import pygame
-from typing import Dict, List
+from typing import Dict, List, Literal, Union
 from geometry import Point, Slope
 
 ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(1280)]
@@ -42,13 +42,14 @@ class SlopableRect(pygame.rect.Rect):
             "left": (p4, p1)
         }
 
+        self.slopes = dict([(side, Slope.from_points(*points)) for side, points in self.points.items()])
+
         # for C
-        # top, bottom, left, right
-        # self.point_list = [(p1, p2), (p3, p4), (p4, p1), (p2, p3)]
+        self.point_list = [p1.x, p1.y, p3.x, p3.y]
+        self.slope_list = [*self.slopes["top"], *self.slopes["right"], *self.slopes["bottom"], *self.slopes["left"]]
         # self.cpoints = [[CPoint.from_python(p1), CPoint.from_python(p2)], [CPoint.from_python(p3), CPoint.from_python(p4)], [CPoint.from_python(p4), CPoint.from_python(p1)], [CPoint.from_python(p2), CPoint.from_python(p3)]]
         # self.cslopes = [CSlope.from_python(Slope.from_points(*points)) for points in self.point_list]
 
-        self.slopes = dict([(side, Slope.from_points(*points)) for side, points in self.points.items()])
 
     def destroy(self):
         ALL_RECTANGLES[self.left].remove(self)

@@ -3,6 +3,7 @@ from typing import Callable, List, Set, Tuple, Union
 import pygame
 from geometry import Circle, Point
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
+import c_collision
 
 def num_between(num, bound1, bound2):
     return (bound1 - num) * (bound2 - num) <= 0
@@ -71,8 +72,8 @@ class Ball(pygame.Rect):
         return None
 
     def __update_if_colided(self, obstacle: SlopableRect) -> bool:
-        collision = self.native_collision(obstacle)
-        # collision = c_detect_collision(self.centerx, self.centery, self.radius, obstacle)
+        # collision = self.native_collision(obstacle)
+        collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
 
         if not collision:
             return False

@@ -41,6 +41,9 @@ class Slope:
     def __repr__(self) -> str:
         return self.__str__()
 
+    def __iter__(self):
+        return iter((self.direction_coefficient, self.y_shift))
+
 
 class Circle:
 

@@ -2,7 +2,7 @@ import ctypes
 import os
 from typing import Tuple
 
-from geometry import Circle, Point
+from geometry import Point
 from slopeable_rect import SlopableRect
 from old_c_types import CPoint, CSlope, CRect, CollisonResult
 

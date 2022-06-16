@@ -10,12 +10,12 @@ from slopeable_rect import SlopableRect
 pygame.init()
 
 WIDTH = 1280
-HEIGHT = 720
+HEIGHT = 1000
 TARGET_FPS = 60
 COLOR_BG = (10, 13, 19)
 COLOR_TEXT_BG = (0, 0, 0)
 COLOR_WHITE = (218, 218, 218)
-LINE_WIDTH = 200
+LINE_WIDTH = WIDTH
 LINE_HEIGHT = 10
 LINE_VELOCITY = 16
 
@@ -23,11 +23,11 @@ CUBE_WIDTH = 10
 CUBE_HEIGHT = 10
 CUBE_PADDING = 10
 CUBE_COUNT_PER_ROW = (WIDTH - CUBE_PADDING) // (CUBE_WIDTH + CUBE_PADDING)
-CUBE_COUNT = CUBE_COUNT_PER_ROW * 20
+CUBE_COUNT = CUBE_COUNT_PER_ROW * 40
 
 BALL_HEIGHT = 12
 
-POWERUP_CHANCE = 20
+POWERUP_CHANCE = 40
 POWERUP_HEIGHT = 20
 POWERUP_VELOCITY = 4
 
@@ -160,6 +160,7 @@ def main():
     total_tpt = 0
     tpt_cnt = 0
     prev_computation_fps = 0
+    worst_fps = 120
 
     game_state: Union[Literal["playing"], Literal["won"], Literal["lost"]] = "playing"
     try:
@@ -178,6 +179,10 @@ def main():
 
                 draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
                 continue
+
+            if len(CUBES) <= 10:
+                running = False
+                break
 
             if len(CUBES) <= 0:
                 game_state = "won"
@@ -202,16 +207,22 @@ def main():
             tpt_cnt += 1
             max_tpt = max(tpt, max_tpt)
 
+            fps = clock.get_fps()
+            if fps != 0:
+                worst_fps = min(worst_fps, clock.get_fps())
+
             prev_computation_fps = (prev_computation_fps * 60 + (1 / (tpt / 1000))) / 61
 
-            draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
+            draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, fps, prev_computation_fps))
     except KeyboardInterrupt:
         pass
 
-    print("\n---------------- Stats ----------------")
-    print(f"{max_tpt=}ms")
-    print(f"avg_tpt={total_tpt / tpt_cnt}ms")
-    print("---------------------------------------")
+    print(max_tpt)
+    print(worst_fps)
+    # print("\n---------------- Stats ----------------")
+    # print(f"{max_tpt=}ms")
+    # print(f"avg_tpt={total_tpt / tpt_cnt}ms")
+    # print("---------------------------------------")
 
 if __name__ == "__main__":
     main()
