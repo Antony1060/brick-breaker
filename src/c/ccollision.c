@@ -171,6 +171,7 @@ PyObject* ccollision_detect_collision(PyObject* self, PyObject* args) {
     PyObject* return_tuple = Py_BuildValue("sdd", res->side, res->point.x, res->point.y);
 
     free(r);
+    free(res);
 
     return return_tuple;
 }
