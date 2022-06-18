@@ -12,15 +12,6 @@
 #define BOTTOM 2
 #define LEFT 3
 
-#define LOG(x) printf(#x ": %d | ", x);
-#define FNL printf("\n"); fflush(stdout);
-
-#define logN(n) printf(#n); FNL
-
-//
-// Note: this file is more of a joke than a serieous optimization
-//
-
 typedef struct Point {
     double x, y;
 } Point;

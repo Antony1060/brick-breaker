@@ -1,7 +1,6 @@
 import math
-from typing import Callable, List, Set, Tuple, Union
+from typing import Callable, List, Set
 import pygame
-from geometry import Circle, Point
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
 import c_collision
 
@@ -37,42 +36,7 @@ class Ball(pygame.Rect):
     def draw(self, surface: pygame.Surface):
         self.on_draw(surface, self.centerx, self.centery, self.radius)
     
-    def __outside_collidable(self, rect: SlopableRect) -> bool:
-        diff_x = abs(self.centerx - rect.centerx)
-        diff_y = abs(self.centery - rect.centery)
-
-        return self.radius + rect.width / 2 < diff_x and self.radius + rect.height / 2 < diff_y
-
-    def native_collision(self, rect: SlopableRect) -> Union[None, Tuple[str, Point]]:
-        if self.__outside_collidable(rect):
-            return None
-        
-        c_x, c_y = self.center
-        circle = Circle(Point(c_x, c_y), self.radius)
-
-        for side, slope in rect.slopes.items():
-            intersections = circle.slope_intersection(slope)
-            if len(intersections) != 2:
-                continue
-
-            inter_point1, inter_point2 = intersections
-            p1, p2 = rect.points[side]
-
-            if side in ["top", "bottom"]:
-                if num_between(inter_point1.x, p1.x, p2.x):
-                    return (side, inter_point1)
-                elif num_between(inter_point2.x, p1.x, p2.x):
-                    return (side, inter_point2)
-            else:
-                if num_between(inter_point1.y, p1.y, p2.y):
-                    return (side, inter_point1)
-                elif num_between(inter_point2.y, p1.y, p2.y):
-                    return (side, inter_point2)
-
-        return None
-
     def __update_if_colided(self, obstacle: SlopableRect) -> bool:
-        # collision = self.native_collision(obstacle)
         collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
 
         if not collision:

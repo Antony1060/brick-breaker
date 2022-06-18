@@ -1,7 +1,17 @@
 import os
-import random
+import sys
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../build/")))
+
+try:
+    import ccollision
+except:
+    print("C sources not compiled! Run `make build`")
+    exit(1)
+
 from typing import Literal, Set, Union
 import pygame
+import random
 import time
 
 from objects import Ball
@@ -9,13 +19,16 @@ from slopeable_rect import SlopableRect
 
 pygame.init()
 
+MODE_EXTREME = "BB_EXTREME" in os.environ
+MODE_TEST = "BB_TEST" in os.environ
+
 WIDTH = 1280
-HEIGHT = 1000
+HEIGHT = 1000 if MODE_EXTREME else 720
 TARGET_FPS = 60
 COLOR_BG = (10, 13, 19)
 COLOR_TEXT_BG = (0, 0, 0)
 COLOR_WHITE = (218, 218, 218)
-LINE_WIDTH = WIDTH
+LINE_WIDTH = WIDTH if MODE_TEST else 200
 LINE_HEIGHT = 10
 LINE_VELOCITY = 16
 
@@ -23,16 +36,16 @@ CUBE_WIDTH = 10
 CUBE_HEIGHT = 10
 CUBE_PADDING = 10
 CUBE_COUNT_PER_ROW = (WIDTH - CUBE_PADDING) // (CUBE_WIDTH + CUBE_PADDING)
-CUBE_COUNT = CUBE_COUNT_PER_ROW * 40
+CUBE_COUNT = CUBE_COUNT_PER_ROW * (40 if MODE_EXTREME else 20)
 
 BALL_HEIGHT = 12
 
-POWERUP_CHANCE = 40
+POWERUP_CHANCE = 40 if MODE_EXTREME else 20
 POWERUP_HEIGHT = 20
 POWERUP_VELOCITY = 4
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Igra")
+pygame.display.set_caption("Brick breaker")
 
 POWERUP_SPLIT_IMG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "split.png")), (POWERUP_HEIGHT, POWERUP_HEIGHT))
 POWERUP_TRIPLE_DOWN_IMG = pygame.transform.scale(pygame.image.load(os.path.join("assets", "triple_down.png")), (POWERUP_HEIGHT, POWERUP_HEIGHT))
@@ -160,7 +173,6 @@ def main():
     total_tpt = 0
     tpt_cnt = 0
     prev_computation_fps = 0
-    worst_fps = 120
 
     game_state: Union[Literal["playing"], Literal["won"], Literal["lost"]] = "playing"
     try:
@@ -180,8 +192,7 @@ def main():
                 draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
                 continue
 
-            if len(CUBES) <= 10:
-                running = False
+            if len(CUBES) <= 10 and MODE_TEST:
                 break
 
             if len(CUBES) <= 0:
@@ -207,22 +218,16 @@ def main():
             tpt_cnt += 1
             max_tpt = max(tpt, max_tpt)
 
-            fps = clock.get_fps()
-            if fps != 0:
-                worst_fps = min(worst_fps, clock.get_fps())
-
             prev_computation_fps = (prev_computation_fps * 60 + (1 / (tpt / 1000))) / 61
 
-            draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, fps, prev_computation_fps))
+            draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
     except KeyboardInterrupt:
         pass
 
-    print(max_tpt)
-    print(worst_fps)
-    # print("\n---------------- Stats ----------------")
-    # print(f"{max_tpt=}ms")
-    # print(f"avg_tpt={total_tpt / tpt_cnt}ms")
-    # print("---------------------------------------")
+    print("\n---------------- Stats ----------------")
+    print(f"{max_tpt=}ms")
+    print(f"avg_tpt={total_tpt / tpt_cnt}ms")
+    print("---------------------------------------")
 
 if __name__ == "__main__":
     main()
