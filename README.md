@@ -10,7 +10,7 @@ At this point the time complexity of the frame was $O(n * x * y)$ where `n` are 
 ### Limiting the columns
 First and probably the most significant optimization was picking only the sorrounding colums of balls around a ball.
 This was accomplished by remembering all cubes aligned against any `x` coordinate value and then going through all `x` values within a 10 offset of a ball.
-This was we can only grab the cube columns in that range, lowering the time complexity to $O(n * y)$.
+This way we can only grab the cube columns in that range, lowering the time complexity to $O(n * y)$.
 
 #### Further microoptimizations
 The before described approach was still going through 30-ish x values even though only a limited amount of them contained anything. This wasn't a big issue but we saw room for improvement.
