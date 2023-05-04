@@ -154,7 +154,10 @@ def draw_state(game_state, stats):
 
     pygame.display.update()
 
-def handle_event(event: pygame.event.Event) -> bool:
+def handle_event(event: pygame.event.Event, game_state: Union[Literal["playing"], Literal["won"], Literal["lost"]]) -> bool:
+    if event.type == pygame.KEYUP and game_state != "playing":
+        return False
+
     if event.type == pygame.QUIT:
         return False
 
@@ -180,15 +183,11 @@ def main():
             clock.tick(TARGET_FPS)
             start = time.perf_counter_ns()
             for event in pygame.event.get():
-                running = handle_event(event)
+                running = handle_event(event, game_state)
             
             keypresses = pygame.key.get_pressed()
 
             if game_state != "playing":
-                if any(keypresses):
-                    running = False
-                    break
-
                 draw_state(game_state, (tpt, total_tpt / tpt_cnt, max_tpt, clock.get_fps(), prev_computation_fps))
                 continue
 
