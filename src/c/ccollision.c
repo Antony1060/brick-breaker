@@ -132,10 +132,10 @@ bool detect_collision(int c_x, int c_y, int c_r, Rect *rect, CollisionReturn *re
 
     return 0;
 
-    success:
-        // i is fine because the goto jumps straight out of the for loop with the same i it was on
-        ret->side = to_side_str(i);
-        return 1;
+success:
+    // i is fine because the goto jumps straight out of the for loop with the same i it was on
+    ret->side = to_side_str(i);
+    return 1;
 }
 
 PyObject* ccollision_detect_collision(PyObject* self, PyObject* args) {
