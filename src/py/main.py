@@ -22,15 +22,17 @@ pygame.init()
 MODE_EXTREME = "BB_EXTREME" in os.environ
 MODE_TEST = "BB_TEST" in os.environ
 
+FPS_SCALE = 3
+
 WIDTH = 1280
 HEIGHT = 1000 if MODE_EXTREME else 720
-TARGET_FPS = 60
+TARGET_FPS = 60 * FPS_SCALE
 COLOR_BG = (10, 13, 19)
 COLOR_TEXT_BG = (0, 0, 0)
 COLOR_WHITE = (218, 218, 218)
 LINE_WIDTH = WIDTH if MODE_TEST else 200
 LINE_HEIGHT = 10
-LINE_VELOCITY = 16
+LINE_VELOCITY = 16 // FPS_SCALE
 
 CUBE_WIDTH = 10
 CUBE_HEIGHT = 10
@@ -42,7 +44,8 @@ BALL_HEIGHT = 12
 
 POWERUP_CHANCE = 40 if MODE_EXTREME else 20
 POWERUP_HEIGHT = 20
-POWERUP_VELOCITY = 4
+POWERUP_VELOCITY = 4 // FPS_SCALE
+BALL_VELOCITY = 6 // FPS_SCALE
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Brick breaker")
@@ -65,14 +68,14 @@ def on_powerup_split_pickup(powerup):
         if len(BALLS) > 1e3:
             return
         for i in range(-6, 7, 12):
-            BALLS.add(Ball(ball.x, ball.y, ball.radius, i, -6, on_ball_draw))
+            BALLS.add(Ball(ball.x, ball.y, ball.radius, i // FPS_SCALE, -BALL_VELOCITY, on_ball_draw))
 
 def on_powerup_triple_pickup(powerup):
     POWERUPS.remove(powerup)
     if len(BALLS) > 1e3:
         return
     for i in range(-6, 7, 6):
-        BALLS.add(Ball(LINE.x + LINE.width / 2 - BALL_HEIGHT / 2, LINE.y - BALL_HEIGHT, BALL_HEIGHT / 2, i, -6, on_ball_draw))
+        BALLS.add(Ball(LINE.x + LINE.width / 2 - BALL_HEIGHT / 2, LINE.y - BALL_HEIGHT, BALL_HEIGHT / 2, i // FPS_SCALE, -BALL_VELOCITY, on_ball_draw))
 
 def on_cube_colide(cube: SlopableRect):
     cube.destroy()
@@ -86,7 +89,7 @@ def on_cube_colide(cube: SlopableRect):
                 lambda win, x, y, r: win.blit(POWERUP_TRIPLE_DOWN_IMG, (x - r, y - r)), on_powerup_triple_pickup))
 
 POWERUPS: Set[Ball] = set()
-BALLS = {Ball(WIDTH / 2 - BALL_HEIGHT / 2, LINE.y - BALL_HEIGHT, BALL_HEIGHT / 2, 6, -6, on_ball_draw)}
+BALLS = {Ball(WIDTH / 2 - BALL_HEIGHT / 2, LINE.y - BALL_HEIGHT, BALL_HEIGHT / 2, BALL_VELOCITY, -BALL_VELOCITY, on_ball_draw)}
 CUBES = {SlopableRect(CUBE_PADDING + (i % CUBE_COUNT_PER_ROW) * (CUBE_PADDING + CUBE_WIDTH), CUBE_PADDING + (i // CUBE_COUNT_PER_ROW) * (CUBE_PADDING + CUBE_HEIGHT) , CUBE_WIDTH, CUBE_HEIGHT, on_cube_colide) for i in range(CUBE_COUNT)}
 
 SlopableRect.optimize()

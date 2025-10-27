@@ -4,28 +4,32 @@ import pygame
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
 import c_collision
 
+
 def num_between(num, bound1, bound2):
     return (bound1 - num) * (bound2 - num) <= 0
 
-BALL_SPEED = 6
+
+BALL_SPEED = 6 // 3
+
 
 def binear_search_by_y(lookup: List[SlopableRect], lower_bound: int) -> int:
-        left = 0
-        right = len(lookup)
-        mid = 0
+    left = 0
+    right = len(lookup)
+    mid = 0
 
-        while left < right:
-            mid = left + (right - left) // 2
-            if lookup[mid].y >= lower_bound:
-                right = mid - 1
-            else:
-                left = mid + 1
-        
-        return mid
+    while left < right:
+        mid = left + (right - left) // 2
+        if lookup[mid].y >= lower_bound:
+            right = mid - 1
+        else:
+            left = mid + 1
+
+    return mid
+
 
 class Ball(pygame.Rect):
 
-    def __init__(self, left, top, radius, vel_x, vel_y, on_draw: Callable[[pygame.Surface, int, int, int], None], on_colide = None):
+    def __init__(self, left, top, radius, vel_x, vel_y, on_draw: Callable[[pygame.Surface, int, int, int], None], on_colide=None):
         super().__init__(left, top, radius * 2, radius * 2)
         self.radius = int(radius)
         self.on_draw = on_draw
@@ -35,9 +39,10 @@ class Ball(pygame.Rect):
 
     def draw(self, surface: pygame.Surface):
         self.on_draw(surface, self.centerx, self.centery, self.radius)
-    
+
     def __update_if_colided(self, obstacle: SlopableRect) -> bool:
-        collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
+        # collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
+        collision = self.detect_collision(obstacle)
 
         if not collision:
             return False
@@ -73,6 +78,38 @@ class Ball(pygame.Rect):
 
         return True
 
+    def detect_collision(self, rect: SlopableRect) -> Union[None, Tuple[str, Point]]:
+        if self.__primitive_collison(rect):
+            return None
+
+        c_x, c_y = self.center
+        circle = Circle(Point(c_x, c_y), self.radius)
+
+        for side, slope in rect.slopes.items():
+            intersections = circle.slope_intersection(slope)
+            if len(intersections) != 2:
+                continue
+
+            inter_point1, inter_point2 = intersections
+            p1, p2 = rect.points[side]
+
+            if side in ["top", "bottom"]:
+                if num_between(inter_point1.x, p1.x, p2.x):
+                    return (side, inter_point1)
+                elif num_between(inter_point2.x, p1.x, p2.x):
+                    return (side, inter_point2)
+            elif side in ["left", "right"]:
+                if num_between(inter_point1.y, p1.y, p2.y):
+                    return (side, inter_point1)
+                elif num_between(inter_point2.y, p1.y, p2.y):
+                    return (side, inter_point2)
+
+            if (side in ["top", "bottom"] and (num_between(inter_point1.x, p1.x, p2.x) or num_between(inter_point2.x, p1.x, p2.x))) \
+                    or (side in ["left", "right"] and (num_between(inter_point1.y, p1.y, p2.y) or num_between(inter_point2.y, p1.y, p2.y))):
+                return side
+
+        return None
+
     def tick(self, obstacles: Set[SlopableRect], extra: Set[SlopableRect] = set()):
         self.x += self.velocity_x
         self.y += self.velocity_y
@@ -85,7 +122,7 @@ class Ball(pygame.Rect):
                 obstacle = ALL_RECTANGLES[i][j]
                 if obstacle.y > self.y + self.height + 10:
                     break
-                
+
                 if obstacle in obstacles and self.__update_if_colided(obstacle):
                     break
 
@@ -96,4 +133,4 @@ class Ball(pygame.Rect):
             self.__update_if_colided(obstacle)
 
     def __hash__(self):
-        return id(self)        
+        return id(self)
