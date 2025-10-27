@@ -1,9 +1,9 @@
 import math
-from typing import Callable, List, Set
+from typing import Callable, List, Set, Union, Tuple
 import pygame
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
+from geometry import Point, Circle
 import c_collision
-
 
 def num_between(num, bound1, bound2):
     return (bound1 - num) * (bound2 - num) <= 0
@@ -40,7 +40,7 @@ class Ball(pygame.Rect):
     def draw(self, surface: pygame.Surface):
         self.on_draw(surface, self.centerx, self.centery, self.radius)
 
-    def __update_if_colided(self, obstacle: SlopableRect) -> bool:
+    def __update_if_collided(self, obstacle: SlopableRect) -> bool:
         # collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
         collision = self.detect_collision(obstacle)
 
@@ -78,8 +78,14 @@ class Ball(pygame.Rect):
 
         return True
 
+    def __primitive_collision(self, rect: SlopableRect) -> bool:
+        diff_x = abs(self.centerx - rect.centerx)
+        diff_y = abs(self.centery - rect.centery)
+
+        return self.radius + rect.width / 2 < diff_x and self.radius + rect.height / 2 < diff_y
+
     def detect_collision(self, rect: SlopableRect) -> Union[None, Tuple[str, Point]]:
-        if self.__primitive_collison(rect):
+        if self.__primitive_collision(rect):
             return None
 
         c_x, c_y = self.center
@@ -104,10 +110,6 @@ class Ball(pygame.Rect):
                 elif num_between(inter_point2.y, p1.y, p2.y):
                     return (side, inter_point2)
 
-            if (side in ["top", "bottom"] and (num_between(inter_point1.x, p1.x, p2.x) or num_between(inter_point2.x, p1.x, p2.x))) \
-                    or (side in ["left", "right"] and (num_between(inter_point1.y, p1.y, p2.y) or num_between(inter_point2.y, p1.y, p2.y))):
-                return side
-
         return None
 
     def tick(self, obstacles: Set[SlopableRect], extra: Set[SlopableRect] = set()):
@@ -123,14 +125,14 @@ class Ball(pygame.Rect):
                 if obstacle.y > self.y + self.height + 10:
                     break
 
-                if obstacle in obstacles and self.__update_if_colided(obstacle):
+                if obstacle in obstacles and self.__update_if_collided(obstacle):
                     break
 
                 j += 1
             i += 1
 
         for obstacle in extra:
-            self.__update_if_colided(obstacle)
+            self.__update_if_collided(obstacle)
 
     def __hash__(self):
         return id(self)
