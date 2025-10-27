@@ -7,4 +7,4 @@ clean:
 .PHONY: build
 build:
 	mkdir -p build
-	gcc -fPIC -shared -O3 -o ./build/ccollision.so ./src/c/ccollision.c
+	gcc -Wall -Wextra -Werror -Wno-missing-field-initializers -fPIC -shared -march=native -O3 -o ./build/ccollision.so ./src/c/ccollision.c

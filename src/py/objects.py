@@ -1,9 +1,13 @@
 import math
+import os
 from typing import Callable, List, Set, Union, Tuple
 import pygame
 from slopeable_rect import ALL_RECTANGLES, SUPPORT_LIST, SlopableRect
 from geometry import Point, Circle
 import c_collision
+
+MODE_EXTREME = "BB_EXTREME" in os.environ
+WIDTH = 1600 if MODE_EXTREME else 1280
 
 def num_between(num, bound1, bound2):
     return (bound1 - num) * (bound2 - num) <= 0
@@ -41,8 +45,8 @@ class Ball(pygame.Rect):
         self.on_draw(surface, self.centerx, self.centery, self.radius)
 
     def __update_if_collided(self, obstacle: SlopableRect) -> bool:
-        # collision = c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
-        collision = self.detect_collision(obstacle)
+        collision = self.detect_collision(obstacle) if "BB_PYCOL" in os.environ \
+                else c_collision.detect_collision(self.centerx, self.centery, self.radius, obstacle)
 
         if not collision:
             return False
@@ -117,7 +121,7 @@ class Ball(pygame.Rect):
         self.y += self.velocity_y
 
         i = max(0, self.x - 10)
-        while i < min(1280, self.x + self.width + 10):
+        while i < min(WIDTH, self.x + self.width + 10):
             i = min(self.x + self.width + 10, SUPPORT_LIST[i])
             j = binear_search_by_y(ALL_RECTANGLES[i], self.y - 10)
             while j < len(ALL_RECTANGLES[i]):

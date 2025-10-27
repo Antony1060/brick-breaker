@@ -1,9 +1,13 @@
 import pygame
+import os
 from typing import Dict, List
 from geometry import Point, Slope
 
-ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(1280)]
-SUPPORT_LIST = [0] * 1280
+MODE_EXTREME = "BB_EXTREME" in os.environ
+WIDTH = 1600 if MODE_EXTREME else 1280
+
+ALL_RECTANGLES: List[List[pygame.Rect]] = [[] for _ in range(WIDTH)]
+SUPPORT_LIST = [0] * WIDTH
 
 class SlopableRect(pygame.rect.Rect):
 
@@ -23,8 +27,8 @@ class SlopableRect(pygame.rect.Rect):
         for items in ALL_RECTANGLES:
             items.sort(key=lambda it: it.y)
 
-        last_index = 1279
-        for i in range(1280 - 1, -1, -1):
+        last_index = WIDTH - 1
+        for i in range(WIDTH - 1, -1, -1):
             if len(ALL_RECTANGLES[i]) > 0:
                 last_index = i
             SUPPORT_LIST[i] = last_index

@@ -24,7 +24,7 @@ MODE_TEST = "BB_TEST" in os.environ
 
 FPS_SCALE = 3
 
-WIDTH = 1280
+WIDTH = 1600 if MODE_EXTREME else 1280
 HEIGHT = 1000 if MODE_EXTREME else 720
 TARGET_FPS = 60 * FPS_SCALE
 COLOR_BG = (10, 13, 19)
@@ -149,11 +149,11 @@ def draw_state(game_state, stats):
     max_tpt_text = MONOSPACE_FONT.render(f"Max TPT: {max_tpt:.6f}ms", False, COLOR_WHITE)
     fps_text = MONOSPACE_FONT.render(f"FPS: {fps:.0f}fps", False, COLOR_WHITE)
     computation_fps_text = MONOSPACE_FONT.render(f"Computation FPS: {computation_fps:.0f}fps", False, COLOR_WHITE)
-    WIN.blit(tpt_text, [20, HEIGHT - 20 - 100, 400, 20])
-    WIN.blit(avg_tpt_text, [20, HEIGHT - 20 - 80, 400, 20])
-    WIN.blit(max_tpt_text, [20, HEIGHT - 20 - 60, 400, 20])
-    WIN.blit(fps_text, [20, HEIGHT - 20 - 40, 400, 20])
-    WIN.blit(computation_fps_text, [20, HEIGHT - 20 - 20, 400, 20])
+    WIN.blit(tpt_text, [20, HEIGHT - 20 - 120, 400, 20])
+    WIN.blit(avg_tpt_text, [20, HEIGHT - 20 - 100, 400, 20])
+    WIN.blit(max_tpt_text, [20, HEIGHT - 20 - 80, 400, 20])
+    WIN.blit(fps_text, [20, HEIGHT - 20 - 60, 400, 20])
+    WIN.blit(computation_fps_text, [20, HEIGHT - 20 - 40, 400, 20])
 
     pygame.display.update()
 
