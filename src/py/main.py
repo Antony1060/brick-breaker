@@ -158,10 +158,7 @@ def draw_state(game_state, stats):
     pygame.display.update()
 
 def handle_event(event: pygame.event.Event, game_state: Union[Literal["playing"], Literal["won"], Literal["lost"]]) -> bool:
-    if event.type == pygame.KEYUP and game_state != "playing":
-        return False
-
-    if event.type == pygame.QUIT:
+    if event.type == pygame.QUIT or (event.type == pygame.KEYUP and game_state != "playing"):
         return False
 
     return True
