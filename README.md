@@ -30,4 +30,4 @@ This ended up speeding up the computation times by 2x.
 Making this game made me realize that I should probably give game devs a bit more credit... or at least the game engine devs. I can't imagine the sheer amount of optimizations and microoptimizations going into those.
 
 ## Credits
-Big big thanks to [@VisenP](https://github.com/VisenP) for helping me with this project because personally I would never be able to do this myself.
+Big thanks to [@VisenP](https://github.com/VisenP) for helping me with a substantial part of this project.
